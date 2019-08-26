@@ -22,7 +22,7 @@ def changeBase(amount, currency, desiredCurrency, date):
 	""" Outputs: a float value f.
 	"""
 
-	URL = f'{BASE_URL}/{date}'
+	URL = BASE_URL + '/' + date
 	response = urlopen(URL).read().decode(ENCODING)
 
 	def get_float(code):
@@ -51,25 +51,35 @@ def printAscending(json):
 
 	rates_start_index = 10
 	rates_end_index = -35
-	refined_rates_str = json[rates_start_index:rates_end_index]
+	refined_rates_str = json[rates_start_index:rates_end_index] + ','
 
-	sorted_rates = []
-	unsorted_rates_raw_list = refined_rates_str.split(',')
+	number_of_rates = refined_rates_str.count(',')
 
-	for rate_str in unsorted_rates_raw_list:
-		code, amount = rate_str.split(':')
-		code = code[1:-1]
-		amount = float(amount)
+	lower_bound = 0
+	for i in range(number_of_rates):
+		loop_start_index = 0
+		loop_end_index = refined_rates_str.find(',')
 
-		sorting_index = 0
-		sorted_rates_length = len(sorted_rates)
-		while(sorting_index < sorted_rates_length and sorted_rates[sorting_index][1] < amount):
-			sorting_index += 1
+		upper_bound = float('inf')
 
-		sorted_rates.insert(sorting_index, [code, amount])
+		for j in range(number_of_rates):
+			if loop_end_index < 0:
+				break
 
-	for rate in sorted_rates:
-		print(f'1 Euro = {rate[1]} {rate[0]}')
+			rate_str = refined_rates_str[loop_start_index:loop_end_index]
+			code = rate_str[1:4]
+			amount = float(rate_str[6:])
+
+			if amount < upper_bound and amount > lower_bound:
+				upper_bound = amount
+				target_code = code
+				target_amount = amount
+
+			loop_start_index = loop_end_index + 1
+			loop_end_index = refined_rates_str.find(',', loop_start_index)
+
+		lower_bound = upper_bound
+		print('1 EUR = ' + str(target_amount) + ' ' + target_code)
 
 def extremeFridays(startDate, endDate, currency):
 	""" Output: on which friday was currency the strongest and on which was it the weakest.
@@ -80,7 +90,7 @@ def extremeFridays(startDate, endDate, currency):
 	currency: a string representing the currency those extremes you have to determine
 	"""
 
-	URL = f'{BASE_URL}/history?start_at={startDate}&end_at={endDate}'
+	URL = BASE_URL + '/history?start_at=' + startDate + '&end_at=' + endDate
 	response = urlopen(URL).read().decode(ENCODING)
 
 	rates_start_index = 10
@@ -91,7 +101,7 @@ def extremeFridays(startDate, endDate, currency):
 		print(b)
 		print()
 
-extremeFridays('2019-08-03', '2019-08-07', 0)
+# extremeFridays('2019-08-03', '2019-08-07', 0)
 
 
 def findMissingDates(startDate, endDate):
