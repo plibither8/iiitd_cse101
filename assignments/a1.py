@@ -2,7 +2,7 @@
 # Roll No : 2019061
 # Group : A-7
 
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 from urllib.request import urlopen
 
 BASE_URL = 'https://api.exchangeratesapi.io'
@@ -23,7 +23,7 @@ def get_date(date_string):
 	year = int(date_string[0:4])
 	month = int(date_string[5:7])
 	day = int(date_string[8:])
-	return date(year, month, day)
+	return datetime(year, month, day)
 
 def getLatestRates():
 	""" Returns: a JSON string that is a response to a latest rates query.
@@ -38,24 +38,35 @@ def changeBase(amount, currency, desiredCurrency, date):
 	""" Outputs: a float value f.
 	"""
 
+	try:
+		datetime.strptime(date, '%Y-%m-%d')
+	except ValueError:
+		return 'Invalid date format'
+
 	url = BASE_URL + '/' + date
 	json_string = get_json_string(url)
 
 	def get_float(code):
 		str_start_index = json_string.find(code) + 5
+		if str_start_index is 4:
+			return False
+
 		str_end_index = json_string.find(',', str_start_index)
 
 		raw_val = json_string[str_start_index:str_end_index]
-		if raw_val[len(raw_val) - 1] == '}':
+		if raw_val[len(raw_val) - 1] is '}':
 			raw_val = raw_val[:-1]
 
-		return(float(raw_val))
+		return float(raw_val)
 
 	curr_val = get_float(currency)
 	des_curr_val = get_float(desiredCurrency)
 
+	if curr_val is False or des_curr_val is False:
+		return 'Invalid currency code'
+
 	converted_val = des_curr_val / curr_val * amount
-	return(converted_val)
+	return converted_val
 
 def printAscending(json):
 	""" Output: the sorted order of the Rates 
@@ -184,6 +195,6 @@ def findMissingDates(startDate, endDate):
 
 	current_date = start_date
 	while(current_date <= end_date):
-		if filtered_res.find(str(current_date)) == -1:
+		if filtered_res.find(str(current_date)) is -1:
 			print(current_date)
 		current_date += timedelta(1)
