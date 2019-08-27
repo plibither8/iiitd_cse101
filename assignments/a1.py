@@ -2,11 +2,28 @@
 # Roll No : 2019061
 # Group : A-7
 
-from datetime import datetime
+from datetime import date, timedelta
 from urllib.request import urlopen
 
-ENCODING = 'utf-8'
 BASE_URL = 'https://api.exchangeratesapi.io'
+
+def get_json_string(url):
+	""" Returns the json response in 'str' datatype
+	"""
+
+	response = urlopen(url).read().decode('utf-8')
+	return response
+
+def get_date(date_string):
+	""" Returns the date object created from the date string that is supplied
+	Parameters: date_string (str): Date string in 'yyyy-mm-dd' format
+	Returns: 'date' object
+	"""
+
+	year = int(date_string[0:4])
+	month = int(date_string[5:7])
+	day = int(date_string[8:])
+	return date(year, month, day)
 
 def getLatestRates():
 	""" Returns: a JSON string that is a response to a latest rates query.
@@ -14,22 +31,21 @@ def getLatestRates():
 	The Json string will have the attributes: rates, base and date (yyyy-mm-dd).
 	"""
 
-	URL = f'{BASE_URL}/latest'
-	response = urlopen(URL).read().decode(ENCODING)
-	return response
+	url = BASE_URL + '/latest'
+	return get_json_string(url)
 
 def changeBase(amount, currency, desiredCurrency, date):
 	""" Outputs: a float value f.
 	"""
 
-	URL = BASE_URL + '/' + date
-	response = urlopen(URL).read().decode(ENCODING)
+	url = BASE_URL + '/' + date
+	json_string = get_json_string(url)
 
 	def get_float(code):
-		str_start_index = response.find(code) + 5
-		str_end_index = response.find(',', str_start_index)
+		str_start_index = json_string.find(code) + 5
+		str_end_index = json_string.find(',', str_start_index)
 
-		raw_val = response[str_start_index:str_end_index]
+		raw_val = json_string[str_start_index:str_end_index]
 		if raw_val[len(raw_val) - 1] == '}':
 			raw_val = raw_val[:-1]
 
@@ -86,27 +102,88 @@ def extremeFridays(startDate, endDate, currency):
 		You don't have to return anything.
 		
 	Parameters: 
-	stardDate and endDate: strings of the form yyyy-mm-dd
+	stardDateStr and endDate: strings of the form yyyy-mm-dd
 	currency: a string representing the currency those extremes you have to determine
 	"""
 
-	URL = BASE_URL + '/history?start_at=' + startDate + '&end_at=' + endDate
-	response = urlopen(URL).read().decode(ENCODING)
+	url = BASE_URL + '/history?start_at=' + startDate + '&end_at=' + endDate
+	json_string = get_json_string(url)
 
 	rates_start_index = 10
-	rates_end_index = -62
+	rates_end_index = -61
 
-	a = response[rates_start_index:rates_end_index].split('},')
-	for b in a:
-		print(b)
-		print()
+	filtered_res = json_string[rates_start_index:rates_end_index] + ','
 
-# extremeFridays('2019-08-03', '2019-08-07', 0)
+	start_date = get_date(startDate)
+	end_date = get_date(endDate)
 
+	days_till_next_friday = (4 - start_date.weekday()) % 7
+	next_friday = start_date + timedelta(days_till_next_friday)
+
+	lowest_val = float('inf')
+	highest_val = 0
+
+	a = 1
+
+	while(next_friday <= end_date):
+		date_rate_str_start = filtered_res.find(str(next_friday)) + 13
+		date_rate_str_end = filtered_res.find('}', date_rate_str_start)
+		date_rate_str = filtered_res[date_rate_str_start:date_rate_str_end] + ','
+
+		amount_str_start = date_rate_str.find(currency) + 5
+		amount_str_end = date_rate_str.find(',', amount_str_start)
+		amount_str = date_rate_str[amount_str_start:amount_str_end]
+		amount = float(amount_str)
+
+		if amount < lowest_val:
+			lowest_val = amount
+			lowest_val_date = str(next_friday)
+		if amount > highest_val:
+			highest_val = amount
+			highest_val_date = str(next_friday)
+
+		next_friday += timedelta(7)
+
+	print(
+		currency,
+		'was strongest on',
+		highest_val_date + '.',
+		'1 Euro was equal to',
+		str(highest_val),
+		currency
+	)
+
+	print(
+		currency,
+		'was weakest on',
+		lowest_val_date + '.',
+		'1 Euro was equal to',
+		str(lowest_val),
+		currency
+	)
 
 def findMissingDates(startDate, endDate):
-	""" Output: the dates that are not present when you do a json query from startDate to endDate
+	""" Output: the dates that are not present when you do a json query from start_date to endDate
 		You don't have to return anything.
 
 		Parameters: stardDate and endDate: strings of the form yyyy-mm-dd
 	"""
+
+	url = BASE_URL + '/history?start_at=' + startDate + '&end_at=' + endDate
+	json_string = get_json_string(url)
+
+	rates_start_index = 10
+	rates_end_index = -61
+
+	filtered_res = json_string[rates_start_index:rates_end_index] + ','
+
+	start_date = get_date(startDate)
+	end_date = get_date(endDate)
+
+	print('The following dates were not present:')
+
+	current_date = start_date
+	while(current_date <= end_date):
+		if filtered_res.find(str(current_date)) == -1:
+			print(current_date)
+		current_date += timedelta(1)
