@@ -1,0 +1,25 @@
+Q1. What is the use of triple quotes? How did it help us in the above-illustrated case in Task 1?
+Ans.
+	Triple quotes represent _string literals_. String literals are values that have the datatype as strings,
+	but give us the ability to easily represent multiline strings having special characters.
+
+	In the specific use-case in Task 1, they represent multiline comments that hold information regarding
+	what the function does, what the parameters and what value the function returns.
+
+===================================
+
+Q2. What is the difference between
+	1. import xyz
+	2. from xyz import abc
+Ans.
+	`import xyz` imports the complete file as one module that holds all functions/variables defined in that module.
+	To access a function/variable from that module, one has to use the 'dot' operator like: `xyz.abc`
+
+	`from xyz import abc` directly imports the variable/function named 'abc' from the module 'xyz', so that it can
+	be accessed without the dot operator.
+
+===================================
+
+Q3. Are you excited for the fresher’s party?
+Ans.
+	Yup :)
