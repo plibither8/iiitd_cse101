@@ -134,8 +134,6 @@ def extremeFridays(startDate, endDate, currency):
 	lowest_val = float('inf')
 	highest_val = 0
 
-	a = 1
-
 	while(next_friday <= end_date):
 		date_rate_str_start = filtered_res.find(str(next_friday)) + 13
 		date_rate_str_end = filtered_res.find('}', date_rate_str_start)
