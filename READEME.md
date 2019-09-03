@@ -1,0 +1,30 @@
+# CSE101: Introduction to Programming
+
+<big><pre>
+.
+├── [assignments](assignments)
+│   ├── [1](assignments/1)
+│   │   ├── [a1.py](assignments/1/a1.py)
+│   │   ├── [a1test.py](assignments/1/a1test.py)
+│   │   ├── [Intro to Programming - Homework 1.pdf](assignments/1/Intro\ to\ Programming\ -\ Homework\ 1.pdf)
+│   └── [2.pdf](assignments/2.pdf)
+├── [labs](labs)
+│   ├── [1.pdf](labs/1.pdf)
+│   ├── [2.pdf](labs/2.pdf)
+│   └── [3](labs/3)
+│       ├── [3.pdf](labs/3/3.pdf)
+│       ├── [answers.txt](labs/3/answers.txt)
+│       ├── [magic_module.py](labs/3/magic_module.py)
+│       ├── [magic_one_file.py](labs/3/magic_one_file.py)
+├── [tutorials](tutorials)
+│   ├── [1.pdf](tutorials/1.pdf)
+│   ├── [2.pdf](tutorials/2.pdf)
+│   ├── [3](tutorials/3)
+│   │   ├── [0.py](tutorials/3/0.py)
+│   │   ├── [2.py](tutorials/3/2.py)
+│   │   ├── [string_module.py](tutorials/3/string_module.py)
+│   │   └── [3.pdf](tutorials/3/3.pdf)
+│   └── [4.pdf](tutorials/4.pdf)
+├── [notes.md](notes.md)
+└── [READEME.md](READEME.md)
+</pre></big>
