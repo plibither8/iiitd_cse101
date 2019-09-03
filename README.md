@@ -6,7 +6,7 @@
 │   ├── [1](assignments/1)
 │   │   ├── [a1.py](assignments/1/a1.py)
 │   │   ├── [a1test.py](assignments/1/a1test.py)
-│   │   ├── [Intro to Programming - Homework 1.pdf](assignments/1/Intro\ to\ Programming\ -\ Homework\ 1.pdf)
+│   │   ├── [1.pdf](assignments/1/1.pdf)
 │   └── [2.pdf](assignments/2.pdf)
 ├── [labs](labs)
 │   ├── [1.pdf](labs/1.pdf)
