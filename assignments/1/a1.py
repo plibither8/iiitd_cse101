@@ -171,8 +171,6 @@ def extremeFridays(startDate, endDate, currency):
 		currency
 	)
 
-extremeFridays('2018-08-07', '2018-12-07', 'INR')
-
 def findMissingDates(startDate, endDate):
 	""" Output: the dates that are not present when you do a json query from start_date to endDate
 		You don't have to return anything.
