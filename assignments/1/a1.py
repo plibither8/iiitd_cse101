@@ -2,7 +2,7 @@
 # Roll No : 2019061
 # Group : A-7
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from urllib.request import urlopen
 
 BASE_URL = 'https://api.exchangeratesapi.io'
@@ -23,7 +23,7 @@ def get_date(date_string):
 	year = int(date_string[0:4])
 	month = int(date_string[5:7])
 	day = int(date_string[8:])
-	return datetime(year, month, day)
+	return date(year, month, day)
 
 def getLatestRates():
 	""" Returns: a JSON string that is a response to a latest rates query.
@@ -158,7 +158,7 @@ def extremeFridays(startDate, endDate, currency):
 		'was strongest on',
 		highest_val_date + '.',
 		'1 Euro was equal to',
-		str(highest_val),
+		str(lowest_val),
 		currency
 	)
 
@@ -167,9 +167,11 @@ def extremeFridays(startDate, endDate, currency):
 		'was weakest on',
 		lowest_val_date + '.',
 		'1 Euro was equal to',
-		str(lowest_val),
+		str(highest_val),
 		currency
 	)
+
+extremeFridays('2018-08-07', '2018-12-07', 'INR')
 
 def findMissingDates(startDate, endDate):
 	""" Output: the dates that are not present when you do a json query from start_date to endDate
