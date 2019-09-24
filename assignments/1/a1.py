@@ -76,37 +76,25 @@ def printAscending(json):
 	json: a json string to parse
 	"""
 
-	rates_start_index = 10
-	rates_end_index = -35
-	refined_rates_str = json[rates_start_index:rates_end_index] + ','
+	refined_rates_str = json[10:-35]
 
-	number_of_rates = refined_rates_str.count(',')
+	sorted_rates = []
+	unsorted_rates_raw_list = refined_rates_str.split(',')
 
-	lower_bound = 0
-	for i in range(number_of_rates):
-		loop_start_index = 0
-		loop_end_index = refined_rates_str.find(',')
+	for rate_str in unsorted_rates_raw_list:
+		code, amount = rate_str.split(':')
+		code = code[1:-1]
+		amount = float(amount)
 
-		upper_bound = float('inf')
+		sorting_index = 0
+		sorted_rates_length = len(sorted_rates)
+		while(sorting_index < sorted_rates_length and sorted_rates[sorting_index][1] < amount):
+			sorting_index += 1
 
-		for j in range(number_of_rates):
-			if loop_end_index < 0:
-				break
+		sorted_rates.insert(sorting_index, [code, amount])
 
-			rate_str = refined_rates_str[loop_start_index:loop_end_index]
-			code = rate_str[1:4]
-			amount = float(rate_str[6:])
-
-			if amount < upper_bound and amount > lower_bound:
-				upper_bound = amount
-				target_code = code
-				target_amount = amount
-
-			loop_start_index = loop_end_index + 1
-			loop_end_index = refined_rates_str.find(',', loop_start_index)
-
-		lower_bound = upper_bound
-		print('1 EUR = ' + str(target_amount) + ' ' + target_code)
+	for rate in sorted_rates:
+		print(f'1 Euro = {rate[1]} {rate[0]}')
 
 def extremeFridays(startDate, endDate, currency):
 	""" Output: on which friday was currency the strongest and on which was it the weakest.
@@ -117,13 +105,10 @@ def extremeFridays(startDate, endDate, currency):
 	currency: a string representing the currency those extremes you have to determine
 	"""
 
-	url = BASE_URL + '/history?start_at=' + startDate + '&end_at=' + endDate
+	url = BASE_URL + f'/history?start_at={startDate}&end_at={endDate}'
 	json_string = get_json_string(url)
 
-	rates_start_index = 10
-	rates_end_index = -61
-
-	filtered_res = json_string[rates_start_index:rates_end_index] + ','
+	filtered_res = json_string[10:-61] + ','
 
 	start_date = get_date(startDate)
 	end_date = get_date(endDate)
@@ -153,23 +138,8 @@ def extremeFridays(startDate, endDate, currency):
 
 		next_friday += timedelta(7)
 
-	print(
-		currency,
-		'was strongest on',
-		highest_val_date + '.',
-		'1 Euro was equal to',
-		str(lowest_val),
-		currency
-	)
-
-	print(
-		currency,
-		'was weakest on',
-		lowest_val_date + '.',
-		'1 Euro was equal to',
-		str(highest_val),
-		currency
-	)
+	print(f'{currency} was strongest on {highest_val_date}. 1 Euro was equal to {str(lowest_val)} {currency}')
+	print(f'{currency} was weakest on {lowest_val_date}. 1 Euro was equal to {str(highest_val)} {currency}')
 
 def findMissingDates(startDate, endDate):
 	""" Output: the dates that are not present when you do a json query from start_date to endDate
@@ -181,10 +151,7 @@ def findMissingDates(startDate, endDate):
 	url = BASE_URL + '/history?start_at=' + startDate + '&end_at=' + endDate
 	json_string = get_json_string(url)
 
-	rates_start_index = 10
-	rates_end_index = -61
-
-	filtered_res = json_string[rates_start_index:rates_end_index] + ','
+	filtered_res = json_string[10:-61] + ','
 
 	start_date = get_date(startDate)
 	end_date = get_date(endDate)
