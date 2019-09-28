@@ -35,3 +35,5 @@ assert_false(a1.checkIntersection(c1, c2))
 c1 = a1.Circle(0, 0, 5)
 c2 = a1.Circle(0, 0, 5)
 assert_true(a1.checkIntersection(c1, c2))
+
+print('done')
