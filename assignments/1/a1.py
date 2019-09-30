@@ -47,6 +47,9 @@ def changeBase(amount, currency, desiredCurrency, date):
 	json_string = get_json_string(url)
 
 	def get_float(code):
+		if code is 'EUR':
+			return 1
+
 		str_start_index = json_string.find(code) + 5
 		if str_start_index is 4:
 			return False
