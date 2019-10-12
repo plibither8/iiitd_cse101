@@ -38,7 +38,7 @@ def sort_points_by_X(points):
         List of points sorted by X coordinate
     """
 
-    return points.sort(key = lambda x : x[0])
+    return sorted(points, key = lambda p: p[0])
 
 
 
@@ -53,7 +53,7 @@ def sort_points_by_Y(points):
         List of points sorted by Y coordinate
     """
 
-    return points.sort(key=lambda x: x[1])
+    return sorted(points, key = lambda p: p[1])
 
 
 
@@ -84,6 +84,7 @@ def naive_closest_pair(plane):
 
     return [closest_dist, *closest_pair]
 
+closest_points = []
 
 def closest_pair_in_strip(points, d):
     """
@@ -102,8 +103,21 @@ def closest_pair_in_strip(points, d):
         distance between p1 and p2 is less than d. Otherwise
         return -1.
     """
-    pass
 
+    global closest_points
+    points = sort_points_by_Y(points)
+
+    for i in range(len(points)):
+        point1 = points[i]
+
+        for point2 in points[i + 1 : i + 6]:
+            current_dist = dist(point1, point2)
+
+            if (current_dist < d):
+                d = current_dist
+                closest_points = [point1, point2]
+
+    return [d, *closest_points]
 
 
 def efficient_closest_pair_routine(points):
@@ -118,9 +132,25 @@ def efficient_closest_pair_routine(points):
         Distance between closest pair of points and closest pair
         of points: [dist_bw_p1_p2, (p1_x, p1_y), (p2_x, p2_y)]
     """
-    pass
 
+    if len(points) is 2:
+        return [dist(*points), *points]
 
+    inflectionPointIndex = len(points) // 2
+    inflectionPoint = points[inflectionPointIndex]
+
+    s1 = points[0:inflectionPointIndex]
+    s2 = points[inflectionPointIndex:]
+
+    s1_closest = efficient_closest_pair_routine(s1) if len(s1) > 1 else [float('inf'), *s1]
+    s2_closest = efficient_closest_pair_routine(s2)
+
+    global closest_points
+    d, p1, p2 = sorted([s1_closest, s2_closest], key = lambda s: s[0])[0]
+    closest_points = [p1, p2]
+
+    strip_points = list(filter(lambda point: abs(point[0] - inflectionPoint[0]) <= d, points))
+    return closest_pair_in_strip(strip_points, d)
 
 def efficient_closest_pair(points):
     """
@@ -134,7 +164,9 @@ def efficient_closest_pair(points):
         Distance between closest pair of points and closest pair
         of points: [dist_bw_p1_p2, (p1_x, p1_y), (p2_x, p2_y)]
     """
-    pass
+
+    points = sort_points_by_X(points)
+    return efficient_closest_pair_routine(points)
 
 
 
@@ -163,6 +195,5 @@ if __name__ == "__main__":
     #size of plane for generation of points
     plane_size = (10, 10)
     plane = generate_plane(plane_size, num_pts)
-    print(plane)
     naive_closest_pair(plane)
-    #efficient_closest_pair(plane)
+    efficient_closest_pair(plane)
