@@ -123,6 +123,10 @@ def extremeFridays(startDate, endDate, currency):
 	highest_val = 0
 
 	while(next_friday <= end_date):
+		if filtered_res.find(str(next_friday)) is -1:
+			next_friday += timedelta(7)
+			continue
+
 		date_rate_str_start = filtered_res.find(str(next_friday)) + 13
 		date_rate_str_end = filtered_res.find('}', date_rate_str_start)
 		date_rate_str = filtered_res[date_rate_str_start:date_rate_str_end] + ','
@@ -141,8 +145,8 @@ def extremeFridays(startDate, endDate, currency):
 
 		next_friday += timedelta(7)
 
-	print(f'{currency} was strongest on {highest_val_date}. 1 Euro was equal to {str(lowest_val)} {currency}')
-	print(f'{currency} was weakest on {lowest_val_date}. 1 Euro was equal to {str(highest_val)} {currency}')
+	print(f'{currency} was strongest on {lowest_val_date}. 1 Euro was equal to {str(lowest_val)} {currency}')
+	print(f'{currency} was weakest on {highest_val_date}. 1 Euro was equal to {str(highest_val)} {currency}')
 
 def findMissingDates(startDate, endDate):
 	""" Output: the dates that are not present when you do a json query from start_date to endDate
@@ -166,3 +170,6 @@ def findMissingDates(startDate, endDate):
 		if filtered_res.find(str(current_date)) is -1:
 			print(current_date)
 		current_date += timedelta(1)
+
+
+extremeFridays("2018-03-01", "2018-04-01", "INR")
