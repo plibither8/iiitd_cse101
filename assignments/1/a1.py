@@ -170,6 +170,3 @@ def findMissingDates(startDate, endDate):
 		if filtered_res.find(str(current_date)) is -1:
 			print(current_date)
 		current_date += timedelta(1)
-
-
-extremeFridays("2018-03-01", "2018-04-01", "INR")
