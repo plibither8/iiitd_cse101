@@ -84,8 +84,6 @@ def naive_closest_pair(plane):
 
     return [closest_dist, *closest_pair]
 
-closest_points = []
-
 def closest_pair_in_strip(points, d):
     """
     Find the closest pair of points in the given strip with a
@@ -104,7 +102,6 @@ def closest_pair_in_strip(points, d):
         return -1.
     """
 
-    global closest_points
     points = sort_points_by_Y(points)
     min_found = False
 
@@ -147,12 +144,12 @@ def efficient_closest_pair_routine(points):
     s1_closest = efficient_closest_pair_routine(s1) if len(s1) > 1 else [float('inf'), *s1]
     s2_closest = efficient_closest_pair_routine(s2)
 
-    global closest_points
     d, p1, p2 = sorted([s1_closest, s2_closest], key = lambda s: s[0])[0]
-    closest_points = [p1, p2]
 
     strip_points = list(filter(lambda point: abs(point[0] - inflectionPoint[0]) <= d, points))
-    return closest_pair_in_strip(strip_points, d)
+    new_closest_pair = closest_pair_in_strip(strip_points, d)
+
+    return [d, p1, p2] if new_closest_pair is -1 else new_closest_pair
 
 
 def efficient_closest_pair(points):
