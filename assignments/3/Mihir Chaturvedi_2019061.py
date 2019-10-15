@@ -106,6 +106,7 @@ def closest_pair_in_strip(points, d):
 
     global closest_points
     points = sort_points_by_Y(points)
+    min_found = False
 
     for i in range(len(points)):
         point1 = points[i]
@@ -116,8 +117,9 @@ def closest_pair_in_strip(points, d):
             if (current_dist < d):
                 d = current_dist
                 closest_points = [point1, point2]
+                min_found = True
 
-    return [d, *closest_points]
+    return [d, *closest_points] if min_found else -1
 
 
 def efficient_closest_pair_routine(points):
@@ -151,6 +153,7 @@ def efficient_closest_pair_routine(points):
 
     strip_points = list(filter(lambda point: abs(point[0] - inflectionPoint[0]) <= d, points))
     return closest_pair_in_strip(strip_points, d)
+
 
 def efficient_closest_pair(points):
     """
