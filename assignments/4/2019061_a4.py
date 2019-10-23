@@ -2,6 +2,16 @@ import os
 import time
 import random
 
+
+cell_graphics = [
+    '.',
+    'O',
+    'X',
+    '',
+    '#'
+]
+
+
 class Player:
     def makeMove(self, s):
         pass
@@ -9,6 +19,7 @@ class Player:
     def __init__(self, x_index, y_index, N):
         self.x = x_index
         self.y = y_index
+        self.type = 1
         self.energy = 2 * N
 
 
@@ -16,12 +27,14 @@ class Goal:
     def __init__(self, x_index, y_index):
         self.x = x_index
         self.y = y_index
+        self.type = 2
 
 
 class Reward:
     def __init__(self, x_index, y_index):
         self.x = x_index
         self.y = y_index
+        self.type = 3
         self.value = random.randint(1, 9)
 
 
@@ -29,6 +42,7 @@ class Obstacle:
     def __init__(self, x_index, y_index):
         self.x = x_index
         self.y = y_index
+        self.type = 4
 
 
 class Grid:
@@ -80,18 +94,26 @@ class Grid:
     def rotateAntiClockwise(self, rotation_factor):
         return self.rotateClockwise(-rotation_factor)
 
+    def updateGrid(self):
+        all_occupied_cells = self.myObstacles + self.myRewards + [player, grid_goal]
+
+        for i in range(self.N):
+            for j in range(self.N):
+                self.grid[i][j] = next((cell.type for cell in all_occupied_cells if (cell.x, cell.y) == (i, j)), 0)
+
     def showGrid(self):
         pass
 
     def __init__(self, N):
         self.N = N
-        self.grid = [[ None ] * N] * N
+        self.grid = [[0] * N for _ in range(N)]
 
         boundry_coords = self.getBoundryCellCoordinates()
         self.start, self.goal = random.sample(boundry_coords, 2)
 
-        global player
+        global player, grid_goal
         player = Player(*self.start, self.N)
+        grid_goal = Goal(*self.goal)
 
         self.occupied_coords = []
 
@@ -103,6 +125,7 @@ class Grid:
         self.myRewards = list(map(lambda cell: Reward(*cell), rewards))
         self.occupied_coords += rewards
 
+        self.updateGrid()
 
 # take input n = input()
 GRID_SIZE = 10
