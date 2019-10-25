@@ -16,10 +16,10 @@ class Color:
 class Player:
 
     directions = {
-        'R': [1, 0],
-        'L': [-1, 0],
-        'U': [0, -1],
-        'D': [0, 1]
+        'R': [0, 1],
+        'L': [0, -1],
+        'U': [-1, 0],
+        'D': [1, 0]
     }
 
     def moveUnit(self, dir_x, dir_y):
@@ -28,16 +28,22 @@ class Player:
 
         self.energy -= 1
 
-        if proposed_coords in grid.cellToCoordsList(grid.myObstacles): return False
         if proposed_coords == grid.goal:
             game_win = True
 
-        rewards = grid.cellToCoordsList(grid.myRewards)
-        if proposed_coords in rewards:
+        if proposed_coords in grid.cellToCoordsList(grid.myObstacles):
+            for i in range(len(grid.myObstacles)):
+                obstacle_cell = grid.myObstacles[i]
+                if proposed_coords == (obstacle_cell.x, obstacle_cell.y):
+                    self.energy -= 4 * grid.N
+                    del grid.myObstacles[i]
+                    break
+
+        if proposed_coords in grid.cellToCoordsList(grid.myRewards):
             for i in range(len(grid.myRewards)):
                 reward_cell = grid.myRewards[i]
                 if proposed_coords == (reward_cell.x, reward_cell.y):
-                    self.energy += reward_cell.value
+                    self.energy += reward_cell.value * grid.N
                     del grid.myRewards[i]
                     break
 
@@ -49,6 +55,7 @@ class Player:
         commands = [s[i:i+2] for i in range(0, len(s), 2)]
 
         if not commands: return True
+        if game_win: return True
 
         active_command = commands[0]
         active_command_type, active_command_length = list(active_command)
@@ -79,7 +86,7 @@ class Player:
         if valid_move:
             grid.updateGrid()
             grid.showGrid()
-            # time.sleep(5)
+            time.sleep(0.5)
 
             active_command_length = active_command_length - 1 if active_command_type in permitted_move_types else 0
             commands = [active_command_type + str(active_command_length)] + commands[1:]
@@ -190,7 +197,11 @@ class Grid:
             self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
             self.myRewards[:] = map(changeCoordinates, self.myRewards)
 
-        return False not in self.myRewards + self.myObstacles
+        if False in self.myRewards + self.myObstacles:
+            print(Color.RED + "Grid cannot be rotated!" + Color.RESET)
+            return False
+        else:
+            return True
 
     def rotateAntiClockwise(self, rotation_factor):
         return self.rotateClockwise(-rotation_factor)
@@ -213,7 +224,7 @@ class Grid:
                 'color': Color.WHITE
             },
             1: {
-                'graphic': '◼',
+                'graphic': 'O',  # ◼
                 'color': Color.BLUE
             },
             2: {
@@ -226,7 +237,7 @@ class Grid:
             }
         }
 
-        # os.system('clear')
+        os.system('clear')
 
         print(Color.YELLOW + 'ENERGY: ' + str(player.energy) + Color.RESET)
         print()
@@ -236,6 +247,7 @@ class Grid:
                 cell_color = Color.YELLOW if isinstance(cell, str) else cell_details[cell]['color']
                 print("\u001b[47" + cell_color + ' ' + cell_graphic + Color.RESET, end='', flush=True)
             print()
+        print()
 
     def __init__(self, N):
         self.N = N
@@ -258,11 +270,21 @@ class Grid:
         self.myRewards[:] = map(lambda coords: Reward(*coords), rewards)
 
         self.updateGrid()
-        self.showGrid()
-        # time.sleep(5)
 
-# take input n = input()
-GRID_SIZE = 10
+os.system('clear')
+
+print(Color.BLUE + "Welcome to GridWorld!" + Color.RESET + '\n')
+GRID_SIZE = int(input(Color.YELLOW + "Enter grid size: " + Color.GREEN))
+
+os.system('clear')
 
 grid = Grid(GRID_SIZE)
-player.makeMove("C1C1C1C1")
+grid.showGrid()
+
+user_move = input('\n' + Color.YELLOW + "Enter move: " + Color.GREEN).upper()
+final_result = player.makeMove(user_move)
+
+if final_result and game_win:
+    print(Color.GREEN + "YOU WON!" + Color.RESET)
+else:
+    print(Color.RED + "YOU LOST!" + Color.RESET)
