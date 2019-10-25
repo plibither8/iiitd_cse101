@@ -39,6 +39,7 @@ class Player:
                 if proposed_coords == (reward_cell.x, reward_cell.y):
                     self.energy += reward_cell.value
                     del grid.myRewards[i]
+                    break
 
         self.x, self.y = proposed_coords
 
@@ -47,8 +48,7 @@ class Player:
     def makeMove(self, s):
         commands = [s[i:i+2] for i in range(0, len(s), 2)]
 
-        if not commands:
-            return
+        if not commands: return True
 
         active_command = commands[0]
         active_command_type, active_command_length = list(active_command)
@@ -64,22 +64,28 @@ class Player:
         valid_move = False
 
         if active_command_type in permitted_move_types:
-            if self.moveUnit(*self.directions[active_command_type]):
+            if self.energy > 0 and self.moveUnit(*self.directions[active_command_type]):
                 valid_move = True
 
         elif active_command_type in permitted_rotate_types:
             if active_command_type is 'C':
-                if grid.rotateClockwise(active_command_length):
+                if self.energy >= grid.N // 3 and grid.rotateClockwise(active_command_length):
                     valid_move = True
 
             else:
-                if grid.rotateAntiClockwise(active_command_length):
+                if self.energy >= grid.N // 3 and grid.rotateAntiClockwise(active_command_length):
                     valid_move = True
 
         if valid_move:
+            grid.updateGrid()
+            grid.showGrid()
+            # time.sleep(5)
+
             active_command_length = active_command_length - 1 if active_command_type in permitted_move_types else 0
             commands = [active_command_type + str(active_command_length)] + commands[1:]
             return self.makeMove(''.join(commands))
+
+        return False
 
     def __init__(self, x_index, y_index, N):
         self.x = x_index
@@ -147,7 +153,7 @@ class Grid:
             def changeCoordinates(cell):
                 i, j = cell.x, cell.y
 
-                proposed_coords = (j, self.N - i)
+                proposed_coords = (j, self.N - i - 1)
                 if proposed_coords in player_goal_coords: return False
 
                 cell.x, cell.y = proposed_coords
@@ -161,7 +167,7 @@ class Grid:
             def changeCoordinates(cell):
                 i, j = cell.x, cell.y
 
-                proposed_coords = (self.N - i, self.N - j)
+                proposed_coords = (self.N - i - 1, self.N - j - 1)
                 if proposed_coords in player_goal_coords: return False
 
                 cell.x, cell.y = proposed_coords
@@ -175,7 +181,7 @@ class Grid:
             def changeCoordinates(cell):
                 i, j = cell.x, cell.y
 
-                proposed_coords = (self.N - j, i)
+                proposed_coords = (self.N - j - 1, i)
                 if proposed_coords in player_goal_coords: return False
 
                 cell.x, cell.y = proposed_coords
@@ -184,8 +190,7 @@ class Grid:
             self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
             self.myRewards[:] = map(changeCoordinates, self.myRewards)
 
-        if -1 in self.myRewards + self.myObstacles: return False
-        return True
+        return False not in self.myRewards + self.myObstacles
 
     def rotateAntiClockwise(self, rotation_factor):
         return self.rotateClockwise(-rotation_factor)
@@ -196,7 +201,7 @@ class Grid:
                 required_cell = self.findCellFromCoords(i, j)
 
                 if required_cell:
-                    self.grid[i][j] = required_cell.type if required_cell.type is not 3 else '+' + str(random.randint(1, 9))
+                    self.grid[i][j] = required_cell.type if required_cell.type is not 3 else '+' + str(required_cell.value)
                 else:
                     self.grid[i][j] = 0
 
@@ -221,7 +226,7 @@ class Grid:
             }
         }
 
-        os.system('clear')
+        # os.system('clear')
 
         print(Color.YELLOW + 'ENERGY: ' + str(player.energy) + Color.RESET)
         print()
@@ -247,16 +252,17 @@ class Grid:
         game_win = False
 
         obstacles = random.sample(self.getFreeCellCoordinates(), self.N)
-        self.myObstacles[:] = map(lambda cell: Obstacle(*cell), obstacles)
+        self.myObstacles[:] = map(lambda coords: Obstacle(*coords), obstacles)
 
         rewards = random.sample(self.getFreeCellCoordinates(), self.N)
-        self.myRewards[:] = map(lambda cell: Reward(*cell), rewards)
+        self.myRewards[:] = map(lambda coords: Reward(*coords), rewards)
 
-        # self.updateGrid()
-        # self.showGrid()
+        self.updateGrid()
+        self.showGrid()
+        # time.sleep(5)
 
 # take input n = input()
 GRID_SIZE = 10
 
 grid = Grid(GRID_SIZE)
-player.makeMove("R3L4U2D1A2")
+player.makeMove("C1C1C1C1")
