@@ -14,6 +14,7 @@ class Color:
     RESET = '\u001b[0m'
 
 class Player:
+
     directions = {
         'R': [1, 0],
         'L': [-1, 0],
@@ -22,18 +23,28 @@ class Player:
     }
 
     def moveUnit(self, dir_x, dir_y):
-        # check for collision with obstacle  => game end (lose)
-        # check for collision with goal => game end (win)
-        # check for collision with reward => energy += reward
-        # check for boundary collision => wrap around and reach other end
-        # decrease energy => energy -= 1
-        # 
+        global game_win
+        proposed_coords = (player.x + dir_x) % grid.N, (player.y + dir_y) % grid.N
+
+        self.energy -= 1
+
+        if proposed_coords in grid.cellToCoordsList(grid.myObstacles): return False
+        if proposed_coords == grid.goal:
+            game_win = True
+
+        rewards = grid.cellToCoordsList(grid.myRewards)
+        if proposed_coords in rewards:
+            for i in range(len(grid.myRewards)):
+                reward_cell = grid.myRewards[i]
+                if proposed_coords == (reward_cell.x, reward_cell.y):
+                    self.energy += reward_cell.value
+                    del grid.myRewards[i]
+
+        self.x, self.y = proposed_coords
+
         return True
 
     def makeMove(self, s):
-        global grid
-        grid.showGrid()
-        time.sleep(0.4)
         commands = [s[i:i+2] for i in range(0, len(s), 2)]
 
         if not commands:
@@ -46,27 +57,29 @@ class Player:
         permitted_move_types = list(self.directions.keys())
         permitted_rotate_types = ['A', 'C']
 
+        if active_command_length is 0:
+            commands = commands[1:]
+            return self.makeMove(''.join(commands))
+
         valid_move = False
 
         if active_command_type in permitted_move_types:
             if self.moveUnit(*self.directions[active_command_type]):
                 valid_move = True
+
         elif active_command_type in permitted_rotate_types:
             if active_command_type is 'C':
-                if grid.rotateClockwise(active_command_length) is not -1:
+                if grid.rotateClockwise(active_command_length):
                     valid_move = True
+
             else:
-                if grid.rotateAntiClockwise(active_command_length) is not -1:
+                if grid.rotateAntiClockwise(active_command_length):
                     valid_move = True
 
         if valid_move:
-            active_command_length -= 1
+            active_command_length = active_command_length - 1 if active_command_type in permitted_move_types else 0
             commands = [active_command_type + str(active_command_length)] + commands[1:]
-
-            if active_command_length is 0:
-                commands = commands[1:]
-
-            self.makeMove(''.join(commands))
+            return self.makeMove(''.join(commands))
 
     def __init__(self, x_index, y_index, N):
         self.x = x_index
@@ -98,6 +111,9 @@ class Obstacle:
 
 
 class Grid:
+    def cellToCoordsList(self, cells):
+        return list(map(lambda cell: (cell.x, cell.y), cells))
+
     def findCellFromCoords(self, i, j):
         all_occupied_cells = self.myObstacles + self.myRewards + [player, grid_goal]
         return next((cell for cell in all_occupied_cells if (cell.x, cell.y) == (i, j)), None)
@@ -110,8 +126,8 @@ class Grid:
         return coord_list
 
     def getFreeCellCoordinates(self):
-        extended_occupied_coords = self.occupied_coords + [(player.x, player.y), self.goal]
-        return list(filter(lambda coord: coord not in extended_occupied_coords, self.getCellCoordinates()))
+        all_occupied_coords = self.cellToCoordsList(self.myObstacles + self.myRewards + [player, grid_goal])
+        return list(filter(lambda coords: coords not in all_occupied_coords, self.getCellCoordinates()))
 
     def getBoundryCellCoordinates(self):
         coord_list = self.getCellCoordinates()
@@ -121,32 +137,55 @@ class Grid:
     def rotateClockwise(self, rotation_factor):
         player.energy -= self.N // 3
         real_rotation_factor = rotation_factor % 4
+        player_goal_coords = self.cellToCoordsList([player, grid_goal])
 
         if real_rotation_factor is 0:
             pass  # Don't do anything
 
         elif real_rotation_factor is 1:
-            for k in range(len(self.occupied_coords)):
-                i, j = self.occupied_coords[k]
-                proposed_cell = (j, self.N - i)
-                if proposed_cell is (player.x, player.y): return -1
-                self.occupied_coords[k] = proposed_cell
+
+            def changeCoordinates(cell):
+                i, j = cell.x, cell.y
+
+                proposed_coords = (j, self.N - i)
+                if proposed_coords in player_goal_coords: return False
+
+                cell.x, cell.y = proposed_coords
+                return cell
+
+            self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
+            self.myRewards[:] = map(changeCoordinates, self.myRewards)
 
         elif real_rotation_factor is 2:
-            for k in range(len(self.occupied_coords)):
-                i, j = self.occupied_coords[k]
-                proposed_cell = (self.N - i, self.N - j)
-                if proposed_cell is (player.x, player.y): return -1
-                self.occupied_coords[k] = proposed_cell
+
+            def changeCoordinates(cell):
+                i, j = cell.x, cell.y
+
+                proposed_coords = (self.N - i, self.N - j)
+                if proposed_coords in player_goal_coords: return False
+
+                cell.x, cell.y = proposed_coords
+                return cell
+
+            self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
+            self.myRewards[:] = map(changeCoordinates, self.myRewards)
 
         else:
-            for k in range(len(self.occupied_coords)):
-                i, j = self.occupied_coords[k]
-                proposed_cell = (self.N - j, i)
-                if proposed_cell is (player.x, player.y): return -1
-                self.occupied_coords[k] = proposed_cell
 
-        return 0
+            def changeCoordinates(cell):
+                i, j = cell.x, cell.y
+
+                proposed_coords = (self.N - j, i)
+                if proposed_coords in player_goal_coords: return False
+
+                cell.x, cell.y = proposed_coords
+                return cell
+
+            self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
+            self.myRewards[:] = map(changeCoordinates, self.myRewards)
+
+        if -1 in self.myRewards + self.myObstacles: return False
+        return True
 
     def rotateAntiClockwise(self, rotation_factor):
         return self.rotateClockwise(-rotation_factor)
@@ -155,6 +194,7 @@ class Grid:
         for i in range(self.N):
             for j in range(self.N):
                 required_cell = self.findCellFromCoords(i, j)
+
                 if required_cell:
                     self.grid[i][j] = required_cell.type if required_cell.type is not 3 else '+' + str(random.randint(1, 9))
                 else:
@@ -195,29 +235,28 @@ class Grid:
     def __init__(self, N):
         self.N = N
         self.grid = [[0] * N for _ in range(N)]
+        self.myObstacles = []
+        self.myRewards = []
 
         boundary_coords = self.getBoundryCellCoordinates()
         self.start, self.goal = random.sample(boundary_coords, 2)
 
-        global player, grid_goal
+        global player, grid_goal, game_win
         player = Player(*self.start, self.N)
         grid_goal = Goal(*self.goal)
-
-        self.occupied_coords = []
+        game_win = False
 
         obstacles = random.sample(self.getFreeCellCoordinates(), self.N)
-        self.myObstacles = list(map(lambda cell: Obstacle(*cell), obstacles))
-        self.occupied_coords += obstacles
+        self.myObstacles[:] = map(lambda cell: Obstacle(*cell), obstacles)
 
         rewards = random.sample(self.getFreeCellCoordinates(), self.N)
-        self.myRewards = list(map(lambda cell: Reward(*cell), rewards))
-        self.occupied_coords += rewards
+        self.myRewards[:] = map(lambda cell: Reward(*cell), rewards)
 
-        self.updateGrid()
-        self.showGrid()
+        # self.updateGrid()
+        # self.showGrid()
 
 # take input n = input()
 GRID_SIZE = 10
 
 grid = Grid(GRID_SIZE)
-player.makeMove("R4L5A2")
+player.makeMove("R3L4U2D1A2")
