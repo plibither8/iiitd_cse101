@@ -81,7 +81,7 @@ class Player:
             if active_command_type is 'C' and grid.rotateClockwise(active_command_length):
                 valid_move = True
 
-            elif grid.rotateAntiClockwise(active_command_length):
+            elif active_command_type is 'A' and grid.rotateAntiClockwise(active_command_length):
                 valid_move = True
 
         if valid_move:
@@ -151,14 +151,15 @@ class Grid:
 
         def new_coords(i, j):
             if real_rotation_factor is 0: return (i, j)
-            if real_rotation_factor is 1: return (j, self.N - j -1)
+            if real_rotation_factor is 1: return (j, self.N - i -1)
             if real_rotation_factor is 2: return (self.N - i - 1, self.N - j - 1)
             return (self.N - j - 1, i)
 
         def changeCoordinates(cell):
             proposed_coords = new_coords(cell.x, cell.y)
             cell.x, cell.y = proposed_coords
-            return False if proposed_coords in self.cellToCoordsList([player, grid_goal]) else cell
+            if cell.type is 4 and proposed_coords in self.cellToCoordsList([player, grid_goal]): return False
+            return cell
 
         self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
         self.myRewards[:] = map(changeCoordinates, self.myRewards)
