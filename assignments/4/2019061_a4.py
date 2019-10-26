@@ -6,7 +6,6 @@ import time
 import random
 
 def clearScreen():
-    return
     os.system('clear' if os.name is 'posix' else 'cls')
 
 class Color:
