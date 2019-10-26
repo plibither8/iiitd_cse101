@@ -16,6 +16,25 @@ class Color:
     WHITE = '\u001b[37;1m'
     RESET = '\u001b[0m'
 
+class Goal:
+    def __init__(self, x_index, y_index):
+        self.x = x_index
+        self.y = y_index
+        self.type = 2
+
+class Reward:
+    def __init__(self, x_index, y_index):
+        self.x = x_index
+        self.y = y_index
+        self.type = 3
+        self.value = random.randint(1, 9)
+
+class Obstacle:
+    def __init__(self, x_index, y_index):
+        self.x = x_index
+        self.y = y_index
+        self.type = 4
+
 class Player:
     directions = {
         'R': [0, 1],
@@ -102,29 +121,6 @@ class Player:
         self.energy = 2 * N
         self.remaining_moves = ''
 
-
-class Goal:
-    def __init__(self, x_index, y_index):
-        self.x = x_index
-        self.y = y_index
-        self.type = 2
-
-
-class Reward:
-    def __init__(self, x_index, y_index):
-        self.x = x_index
-        self.y = y_index
-        self.type = 3
-        self.value = random.randint(1, 9)
-
-
-class Obstacle:
-    def __init__(self, x_index, y_index):
-        self.x = x_index
-        self.y = y_index
-        self.type = 4
-
-
 class Grid:
     def cellToCoordsList(self, cells):
         return list(map(lambda cell: (cell.x, cell.y), cells))
@@ -184,7 +180,6 @@ class Grid:
                     self.grid[i][j] = required_cell.type if required_cell.type is not 3 else '+' + str(required_cell.value)
                 else:
                     self.grid[i][j] = 0
-
 
     def showGrid(self):
         cell_details = {
