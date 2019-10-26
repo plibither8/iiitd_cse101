@@ -1,6 +1,13 @@
+# TODO:
+# *Multidigit input for move length
+# *Comments
+
 import os
 import time
 import random
+
+def clearScreen():
+    os.system('clear' if os.name is 'posix' else 'cls')
 
 class Color:
     BLACK = '\u001b[30;1m'
@@ -14,7 +21,6 @@ class Color:
     RESET = '\u001b[0m'
 
 class Player:
-
     directions = {
         'R': [0, 1],
         'L': [0, -1],
@@ -24,34 +30,34 @@ class Player:
 
     def moveUnit(self, dir_x, dir_y):
         global game_win
-        proposed_coords = (player.x + dir_x) % grid.N, (player.y + dir_y) % grid.N
 
+        new_coords = (player.x + dir_x) % grid.N, (player.y + dir_y) % grid.N
+        self.x, self.y = new_coords
         self.energy -= 1
 
-        if proposed_coords == grid.goal:
+        if new_coords == grid.goal:
             game_win = True
+            return
 
-        if proposed_coords in grid.cellToCoordsList(grid.myObstacles):
+        if new_coords in grid.cellToCoordsList(grid.myObstacles):
             for i in range(len(grid.myObstacles)):
                 obstacle_cell = grid.myObstacles[i]
-                if proposed_coords == (obstacle_cell.x, obstacle_cell.y):
+                if new_coords == (obstacle_cell.x, obstacle_cell.y):
                     self.energy -= 4 * grid.N
                     del grid.myObstacles[i]
-                    break
+                    return
 
-        if proposed_coords in grid.cellToCoordsList(grid.myRewards):
+        if new_coords in grid.cellToCoordsList(grid.myRewards):
             for i in range(len(grid.myRewards)):
                 reward_cell = grid.myRewards[i]
-                if proposed_coords == (reward_cell.x, reward_cell.y):
+                if new_coords == (reward_cell.x, reward_cell.y):
                     self.energy += reward_cell.value * grid.N
                     del grid.myRewards[i]
-                    break
-
-        self.x, self.y = proposed_coords
-
-        return True
+                    return
 
     def makeMove(self, s):
+        self.remaining_moves = s
+
         commands = [s[i:i+2] for i in range(0, len(s), 2)]
 
         if not commands: return True
@@ -64,24 +70,18 @@ class Player:
         permitted_move_types = list(self.directions.keys())
         permitted_rotate_types = ['A', 'C']
 
-        if active_command_length is 0:
-            commands = commands[1:]
-            return self.makeMove(''.join(commands))
-
         valid_move = False
 
-        if active_command_type in permitted_move_types:
-            if self.energy > 0 and self.moveUnit(*self.directions[active_command_type]):
+        if active_command_type in permitted_move_types and self.energy > 0:
+            self.moveUnit(*self.directions[active_command_type])
+            valid_move = True
+
+        elif active_command_type in permitted_rotate_types and self.energy >= grid.N // 3:
+            if active_command_type is 'C' and grid.rotateClockwise(active_command_length):
                 valid_move = True
 
-        elif active_command_type in permitted_rotate_types:
-            if active_command_type is 'C':
-                if self.energy >= grid.N // 3 and grid.rotateClockwise(active_command_length):
-                    valid_move = True
-
-            else:
-                if self.energy >= grid.N // 3 and grid.rotateAntiClockwise(active_command_length):
-                    valid_move = True
+            elif grid.rotateAntiClockwise(active_command_length):
+                valid_move = True
 
         if valid_move:
             grid.updateGrid()
@@ -89,7 +89,7 @@ class Player:
             time.sleep(0.5)
 
             active_command_length = active_command_length - 1 if active_command_type in permitted_move_types else 0
-            commands = [active_command_type + str(active_command_length)] + commands[1:]
+            commands = ([] if active_command_length is 0 else [active_command_type + str(active_command_length)]) + commands[1:]
             return self.makeMove(''.join(commands))
 
         return False
@@ -99,6 +99,7 @@ class Player:
         self.y = y_index
         self.type = 1
         self.energy = 2 * N
+        self.remaining_moves = ''
 
 
 class Goal:
@@ -126,10 +127,6 @@ class Obstacle:
 class Grid:
     def cellToCoordsList(self, cells):
         return list(map(lambda cell: (cell.x, cell.y), cells))
-
-    def findCellFromCoords(self, i, j):
-        all_occupied_cells = self.myObstacles + self.myRewards + [player, grid_goal]
-        return next((cell for cell in all_occupied_cells if (cell.x, cell.y) == (i, j)), None)
 
     def getCellCoordinates(self):
         coord_list = []
@@ -207,9 +204,11 @@ class Grid:
         return self.rotateClockwise(-rotation_factor)
 
     def updateGrid(self):
+        all_occupied_cells = self.myObstacles + self.myRewards + [player, grid_goal]
+
         for i in range(self.N):
             for j in range(self.N):
-                required_cell = self.findCellFromCoords(i, j)
+                required_cell = next((cell for cell in all_occupied_cells if (cell.x, cell.y) == (i, j)), None)
 
                 if required_cell:
                     self.grid[i][j] = required_cell.type if required_cell.type is not 3 else '+' + str(required_cell.value)
@@ -237,10 +236,8 @@ class Grid:
             }
         }
 
-        os.system('clear')
-
-        print(Color.YELLOW + 'ENERGY: ' + str(player.energy) + Color.RESET)
-        print()
+        clearScreen()
+        print(Color.YELLOW + 'ENERGY: ' + str(player.energy) + Color.RESET + '\n')
         for row in self.grid:
             for cell in row:
                 cell_graphic = cell[1] if isinstance(cell, str) else cell_details[cell]['graphic']
@@ -248,6 +245,8 @@ class Grid:
                 print("\u001b[47" + cell_color + ' ' + cell_graphic + Color.RESET, end='', flush=True)
             print()
         print()
+        if not game_win:
+            print(Color.MAGENTA + player.remaining_moves + Color.RESET)
 
     def __init__(self, N):
         self.N = N
@@ -271,18 +270,20 @@ class Grid:
 
         self.updateGrid()
 
-os.system('clear')
 
+clearScreen()
 print(Color.BLUE + "Welcome to GridWorld!" + Color.RESET + '\n')
 GRID_SIZE = int(input(Color.YELLOW + "Enter grid size: " + Color.GREEN))
-
-os.system('clear')
+clearScreen()
 
 grid = Grid(GRID_SIZE)
 grid.showGrid()
 
 user_move = input('\n' + Color.YELLOW + "Enter move: " + Color.GREEN).upper()
+player.remaining_moves = user_move
 final_result = player.makeMove(user_move)
+
+grid.showGrid()
 
 if final_result and game_win:
     print(Color.GREEN + "YOU WON!" + Color.RESET)
