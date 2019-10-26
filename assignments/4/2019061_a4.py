@@ -1,5 +1,4 @@
 # TODO:
-# *Multidigit input for move length
 # *Comments
 
 import os
@@ -7,6 +6,7 @@ import time
 import random
 
 def clearScreen():
+    return
     os.system('clear' if os.name is 'posix' else 'cls')
 
 class Color:
@@ -58,17 +58,22 @@ class Player:
     def makeMove(self, s):
         self.remaining_moves = s
 
-        commands = [s[i:i+2] for i in range(0, len(s), 2)]
+        permitted_move_types = list(self.directions.keys())
+        permitted_rotate_types = ['A', 'C']
+
+        commands = []
+        for char in s:
+            if char in permitted_move_types + permitted_rotate_types:
+                commands.append(char)
+            else:
+                commands[-1] += char
 
         if not commands: return True
         if game_win: return True
 
         active_command = commands[0]
-        active_command_type, active_command_length = list(active_command)
+        active_command_type, active_command_length = active_command[0], active_command[1:]
         active_command_length = int(active_command_length)
-
-        permitted_move_types = list(self.directions.keys())
-        permitted_rotate_types = ['A', 'C']
 
         valid_move = False
 
