@@ -1,6 +1,3 @@
-# TODO:
-# *Comments
-
 import os
 import time
 import random
@@ -151,52 +148,20 @@ class Grid:
     def rotateClockwise(self, rotation_factor):
         player.energy -= self.N // 3
         real_rotation_factor = rotation_factor % 4
-        player_goal_coords = self.cellToCoordsList([player, grid_goal])
 
-        if real_rotation_factor is 0:
-            pass  # Don't do anything
+        def new_coords(i, j):
+            if real_rotation_factor is 0: return (i, j)
+            if real_rotation_factor is 1: return (j, self.N - j -1)
+            if real_rotation_factor is 2: return (self.N - i - 1, self.N - j - 1)
+            return (self.N - j - 1, i)
 
-        elif real_rotation_factor is 1:
+        def changeCoordinates(cell):
+            proposed_coords = new_coords(cell.x, cell.y)
+            cell.x, cell.y = proposed_coords
+            return False if proposed_coords in self.cellToCoordsList([player, grid_goal]) else cell
 
-            def changeCoordinates(cell):
-                i, j = cell.x, cell.y
-
-                proposed_coords = (j, self.N - i - 1)
-                if proposed_coords in player_goal_coords: return False
-
-                cell.x, cell.y = proposed_coords
-                return cell
-
-            self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
-            self.myRewards[:] = map(changeCoordinates, self.myRewards)
-
-        elif real_rotation_factor is 2:
-
-            def changeCoordinates(cell):
-                i, j = cell.x, cell.y
-
-                proposed_coords = (self.N - i - 1, self.N - j - 1)
-                if proposed_coords in player_goal_coords: return False
-
-                cell.x, cell.y = proposed_coords
-                return cell
-
-            self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
-            self.myRewards[:] = map(changeCoordinates, self.myRewards)
-
-        else:
-
-            def changeCoordinates(cell):
-                i, j = cell.x, cell.y
-
-                proposed_coords = (self.N - j - 1, i)
-                if proposed_coords in player_goal_coords: return False
-
-                cell.x, cell.y = proposed_coords
-                return cell
-
-            self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
-            self.myRewards[:] = map(changeCoordinates, self.myRewards)
+        self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
+        self.myRewards[:] = map(changeCoordinates, self.myRewards)
 
         if False in self.myRewards + self.myObstacles:
             print(Color.RED + "Grid cannot be rotated!" + Color.RESET)
