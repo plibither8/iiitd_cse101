@@ -183,7 +183,7 @@ class Grid:
                 'color': Color.WHITE
             },
             1: {
-                'graphic': 'O',  # ◼
+                'graphic': 'O',
                 'color': Color.BLUE
             },
             2: {
