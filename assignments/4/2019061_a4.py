@@ -82,8 +82,7 @@ class Player:
         if game_win: return True
 
         active_command = commands[0]
-        active_command_type, active_command_length = active_command[0], active_command[1:]
-        active_command_length = int(active_command_length)
+        active_command_type, active_command_length = active_command[0], int(active_command[1:])
 
         valid_move = False
 
@@ -137,7 +136,6 @@ class Grid:
         return boundary_coords_list
 
     def rotateClockwise(self, rotation_factor):
-        player.energy -= self.N // 3
         real_rotation_factor = rotation_factor % 4
 
         def new_coords(i, j):
@@ -159,6 +157,7 @@ class Grid:
             print(Color.RED + 'Grid cannot be rotated!' + Color.RESET)
             return False
         else:
+            player.energy -= self.N // 3
             return True
 
     def rotateAntiClockwise(self, rotation_factor):
@@ -198,13 +197,17 @@ class Grid:
 
         clearScreen()
         print(Color.YELLOW + 'ENERGY: ' + str(player.energy) + Color.RESET + '\n')
+
         for row in self.grid:
             for cell in row:
-                cell_graphic = cell[1] if isinstance(cell, str) else cell_details[cell]['graphic']
-                cell_color = Color.YELLOW if isinstance(cell, str) else cell_details[cell]['color']
+                is_reward_cell = isinstance(cell, str)
+                cell_graphic = cell[1] if is_reward_cell else cell_details[cell]['graphic']
+                cell_color = Color.YELLOW if is_reward_cell else cell_details[cell]['color']
+
                 print('\u001b[47' + cell_color + ' ' + cell_graphic + Color.RESET, end='', flush=True)
             print()
         print()
+
         if not game_win:
             print(Color.MAGENTA + player.remaining_moves + Color.RESET)
 
