@@ -32,6 +32,7 @@ class Obstacle:
         self.x = x_index
         self.y = y_index
         self.type = 4
+        self.value = -4
 
 class Player:
     directions = {
@@ -52,21 +53,17 @@ class Player:
             game_win = True
             return
 
-        if new_coords in grid.cellToCoordsList(grid.myObstacles):
-            for i in range(len(grid.myObstacles)):
-                obstacle_cell = grid.myObstacles[i]
-                if new_coords == (obstacle_cell.x, obstacle_cell.y):
-                    self.energy -= 4 * grid.N
-                    del grid.myObstacles[i]
-                    return
+        def checkCollision(cell_list):
+            if new_coords in grid.cellToCoordsList(cell_list):
+                for i in range(len(cell_list)):
+                    current_cell = cell_list[i]
+                    if new_coords == (current_cell.x, current_cell.y):
+                        self.energy += current_cell.value * grid.N
+                        del cell_list[i]
+                        return
 
-        if new_coords in grid.cellToCoordsList(grid.myRewards):
-            for i in range(len(grid.myRewards)):
-                reward_cell = grid.myRewards[i]
-                if new_coords == (reward_cell.x, reward_cell.y):
-                    self.energy += reward_cell.value * grid.N
-                    del grid.myRewards[i]
-                    return
+        checkCollision(grid.myObstacles)
+        checkCollision(grid.myRewards)
 
     def makeMove(self, s):
         self.remaining_moves = s
@@ -124,20 +121,20 @@ class Grid:
         return list(map(lambda cell: (cell.x, cell.y), cells))
 
     def getCellCoordinates(self):
-        coord_list = []
+        coords_list = []
         for i in range(self.N):
             for j in range(self.N):
-                coord_list.append((i, j))
-        return coord_list
+                coords_list.append((i, j))
+        return coords_list
 
     def getFreeCellCoordinates(self):
         all_occupied_coords = self.cellToCoordsList(self.myObstacles + self.myRewards + [player, grid_goal])
         return list(filter(lambda coords: coords not in all_occupied_coords, self.getCellCoordinates()))
 
     def getBoundryCellCoordinates(self):
-        coord_list = self.getCellCoordinates()
-        boundary_coord_list = list(filter(lambda cell: set(cell).intersection(set([0, self.N - 1])), coord_list))
-        return boundary_coord_list
+        coords_list = self.getCellCoordinates()
+        boundary_coords_list = list(filter(lambda cell: set(cell).intersection(set([0, self.N - 1])), coords_list))
+        return boundary_coords_list
 
     def rotateClockwise(self, rotation_factor):
         player.energy -= self.N // 3
