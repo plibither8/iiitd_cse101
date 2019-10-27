@@ -66,8 +66,6 @@ class Player:
         checkCollision(grid.myRewards)
 
     def makeMove(self, s):
-        self.remaining_moves = s
-
         permitted_move_types = list(self.directions.keys())
         permitted_rotate_types = ['A', 'C']
 
@@ -104,7 +102,9 @@ class Player:
 
             active_command_length = active_command_length - 1 if active_command_type in permitted_move_types else 0
             commands = ([] if active_command_length is 0 else [active_command_type + str(active_command_length)]) + commands[1:]
-            return self.makeMove(''.join(commands))
+
+            self.remaining_moves = ''.join(commands)
+            return self.makeMove(self.remaining_moves)
 
         return False
 
@@ -242,9 +242,8 @@ clearScreen()
 grid = Grid(GRID_SIZE)
 grid.showGrid()
 
-user_move = input('\n' + Color.YELLOW + 'Enter move: ' + Color.GREEN).upper()
-player.remaining_moves = user_move
-final_result = player.makeMove(user_move)
+player.remaining_moves = input('\n' + Color.YELLOW + 'Enter move: ' + Color.GREEN).upper()
+final_result = player.makeMove(player.remaining_moves)
 
 grid.showGrid()
 
