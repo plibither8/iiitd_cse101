@@ -1,6 +1,6 @@
-import os
-import time
-import random
+import os # Clear terminal screen
+import time # Wait and print grid
+import random # Generate and receive random coords
 
 def clearScreen():
     os.system('clear' if os.name is 'posix' else 'cls')
@@ -159,7 +159,7 @@ class Grid:
         self.myRewards[:] = map(changeCoordinates, self.myRewards)
 
         if False in self.myRewards + self.myObstacles:
-            print(Color.RED + "Grid cannot be rotated!" + Color.RESET)
+            print(Color.RED + 'Grid cannot be rotated!' + Color.RESET)
             return False
         else:
             return True
@@ -205,7 +205,7 @@ class Grid:
             for cell in row:
                 cell_graphic = cell[1] if isinstance(cell, str) else cell_details[cell]['graphic']
                 cell_color = Color.YELLOW if isinstance(cell, str) else cell_details[cell]['color']
-                print("\u001b[47" + cell_color + ' ' + cell_graphic + Color.RESET, end='', flush=True)
+                print('\u001b[47' + cell_color + ' ' + cell_graphic + Color.RESET, end='', flush=True)
             print()
         print()
         if not game_win:
@@ -235,20 +235,20 @@ class Grid:
 
 
 clearScreen()
-print(Color.BLUE + "Welcome to GridWorld!" + Color.RESET + '\n')
-GRID_SIZE = int(input(Color.YELLOW + "Enter grid size: " + Color.GREEN))
+print(Color.BLUE + 'Welcome to GridWorld!' + Color.RESET + '\n')
+GRID_SIZE = int(input(Color.YELLOW + 'Enter grid size: ' + Color.GREEN))
 clearScreen()
 
 grid = Grid(GRID_SIZE)
 grid.showGrid()
 
-user_move = input('\n' + Color.YELLOW + "Enter move: " + Color.GREEN).upper()
+user_move = input('\n' + Color.YELLOW + 'Enter move: ' + Color.GREEN).upper()
 player.remaining_moves = user_move
 final_result = player.makeMove(user_move)
 
 grid.showGrid()
 
 if final_result and game_win:
-    print(Color.GREEN + "YOU WON!" + Color.RESET)
+    print(Color.GREEN + 'YOU WON!' + Color.RESET)
 else:
-    print(Color.RED + "YOU LOST!" + Color.RESET)
+    print(Color.RED + 'YOU LOST!' + Color.RESET)
