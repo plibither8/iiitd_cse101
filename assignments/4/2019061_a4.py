@@ -54,13 +54,12 @@ class Player:
             return
 
         def checkCollision(cell_list):
-            if new_coords in grid.cellToCoordsList(cell_list):
-                for i in range(len(cell_list)):
-                    current_cell = cell_list[i]
-                    if new_coords == (current_cell.x, current_cell.y):
-                        self.energy += current_cell.value * grid.N
-                        del cell_list[i]
-                        return
+            cell_index = next((i for i, coords in enumerate(grid.cellToCoordsList(cell_list)) if coords == new_coords), -1)
+            if cell_index is not -1:
+                current_cell = cell_list[cell_index]
+                self.energy += current_cell.value * grid.N
+                del cell_list[cell_index]
+                return
 
         checkCollision(grid.myObstacles)
         checkCollision(grid.myRewards)
