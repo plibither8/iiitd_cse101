@@ -2,7 +2,7 @@ import os # Clear terminal screen
 import time # Wait and print grid
 import random # Generate and receive random coords
 
-def clearScreen():
+def clear_screen():
     os.system('clear' if os.name is 'posix' else 'cls')
 
 class Color:
@@ -42,7 +42,7 @@ class Player:
         'D': [1, 0]
     }
 
-    def moveUnit(self, dir_x, dir_y):
+    def move_unit(self, dir_x, dir_y):
         global game_win
 
         new_coords = (player.x + dir_x) % grid.N, (player.y + dir_y) % grid.N
@@ -53,16 +53,16 @@ class Player:
             game_win = True
             return
 
-        def checkCollision(cell_list):
-            cell_index = next((i for i, coords in enumerate(grid.cellToCoordsList(cell_list)) if coords == new_coords), -1)
+        def check_collision(cell_list):
+            cell_index = next((i for i, coords in enumerate(grid.cell_to_coords_list(cell_list)) if coords == new_coords), -1)
             if cell_index is not -1:
                 current_cell = cell_list[cell_index]
                 self.energy += current_cell.value * grid.N
                 del cell_list[cell_index]
                 return
 
-        checkCollision(grid.myObstacles)
-        checkCollision(grid.myRewards)
+        check_collision(grid.myObstacles)
+        check_collision(grid.myRewards)
 
     def makeMove(self, s):
         permitted_move_types = list(self.directions.keys())
@@ -84,7 +84,7 @@ class Player:
         valid_move = False
 
         if active_command_type in permitted_move_types and self.energy > 0:
-            self.moveUnit(*self.directions[active_command_type])
+            self.move_unit(*self.directions[active_command_type])
             valid_move = True
 
         elif active_command_type in permitted_rotate_types and self.energy >= grid.N // 3:
@@ -95,7 +95,7 @@ class Player:
                 valid_move = True
 
         if valid_move:
-            grid.updateGrid()
+            grid.update_grid()
             grid.showGrid()
             time.sleep(0.5)
 
@@ -115,22 +115,22 @@ class Player:
         self.remaining_moves = ''
 
 class Grid:
-    def cellToCoordsList(self, cells):
+    def cell_to_coords_list(self, cells):
         return list(map(lambda cell: (cell.x, cell.y), cells))
 
-    def getCellCoordinates(self):
+    def get_cell_coordinates(self):
         coords_list = []
         for i in range(self.N):
             for j in range(self.N):
                 coords_list.append((i, j))
         return coords_list
 
-    def getFreeCellCoordinates(self):
-        all_occupied_coords = self.cellToCoordsList(self.myObstacles + self.myRewards + [player, grid_goal])
-        return list(filter(lambda coords: coords not in all_occupied_coords, self.getCellCoordinates()))
+    def get_free_cell_coordinates(self):
+        all_occupied_coords = self.cell_to_coords_list(self.myObstacles + self.myRewards + [player, grid_goal])
+        return list(filter(lambda coords: coords not in all_occupied_coords, self.get_cell_coordinates()))
 
-    def getBoundryCellCoordinates(self):
-        coords_list = self.getCellCoordinates()
+    def get_boundry_cell_coordinates(self):
+        coords_list = self.get_cell_coordinates()
         boundary_coords_list = list(filter(lambda cell: set(cell).intersection(set([0, self.N - 1])), coords_list))
         return boundary_coords_list
 
@@ -143,14 +143,14 @@ class Grid:
             if real_rotation_factor is 2: return (self.N - i - 1, self.N - j - 1)
             return (self.N - j - 1, i)
 
-        def changeCoordinates(cell):
+        def change_coordinates(cell):
             proposed_coords = new_coords(cell.x, cell.y)
             cell.x, cell.y = proposed_coords
-            if cell.type is 4 and proposed_coords in self.cellToCoordsList([player, grid_goal]): return False
+            if cell.type is 4 and proposed_coords in self.cell_to_coords_list([player, grid_goal]): return False
             return cell
 
-        self.myObstacles[:] = map(changeCoordinates, self.myObstacles)
-        self.myRewards[:] = map(changeCoordinates, self.myRewards)
+        self.myObstacles[:] = map(change_coordinates, self.myObstacles)
+        self.myRewards[:] = map(change_coordinates, self.myRewards)
 
         if False in self.myRewards + self.myObstacles:
             print(Color.RED + 'Grid cannot be rotated!' + Color.RESET)
@@ -162,7 +162,7 @@ class Grid:
     def rotateAntiClockwise(self, rotation_factor):
         return self.rotateClockwise(-rotation_factor)
 
-    def updateGrid(self):
+    def update_grid(self):
         all_occupied_cells = self.myObstacles + self.myRewards + [player, grid_goal]
 
         for i in range(self.N):
@@ -185,7 +185,7 @@ class Grid:
                 'color': Color.BLUE
             },
             2: {
-                'graphic': '🏁',
+                'graphic': '@',
                 'color': Color.GREEN
             },
             4: {
@@ -194,7 +194,7 @@ class Grid:
             }
         }
 
-        clearScreen()
+        clear_screen()
         print(Color.YELLOW + 'ENERGY: ' + str(player.energy) + Color.RESET + '\n')
 
         for row in self.grid:
@@ -216,7 +216,7 @@ class Grid:
         self.myObstacles = []
         self.myRewards = []
 
-        boundary_coords = self.getBoundryCellCoordinates()
+        boundary_coords = self.get_boundry_cell_coordinates()
         self.start, self.goal = random.sample(boundary_coords, 2)
 
         global player, grid_goal, game_win
@@ -224,19 +224,19 @@ class Grid:
         grid_goal = Goal(*self.goal)
         game_win = False
 
-        obstacles = random.sample(self.getFreeCellCoordinates(), self.N)
+        obstacles = random.sample(self.get_free_cell_coordinates(), self.N)
         self.myObstacles[:] = map(lambda coords: Obstacle(*coords), obstacles)
 
-        rewards = random.sample(self.getFreeCellCoordinates(), self.N)
+        rewards = random.sample(self.get_free_cell_coordinates(), self.N)
         self.myRewards[:] = map(lambda coords: Reward(*coords), rewards)
 
-        self.updateGrid()
+        self.update_grid()
 
 
-clearScreen()
+clear_screen()
 print(Color.BLUE + 'Welcome to GridWorld!' + Color.RESET + '\n')
 GRID_SIZE = int(input(Color.YELLOW + 'Enter grid size: ' + Color.GREEN))
-clearScreen()
+clear_screen()
 
 grid = Grid(GRID_SIZE)
 grid.showGrid()
