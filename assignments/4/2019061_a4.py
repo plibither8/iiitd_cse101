@@ -34,6 +34,12 @@ class Obstacle:
         self.type = 4
         self.value = -4
 
+class Visited:
+    def __init__(self, x_index, y_index):
+        self.x = x_index
+        self.y = y_index
+        self.type = 5
+
 class Player:
     directions = {
         'R': [0, 1],
@@ -45,9 +51,13 @@ class Player:
     def move_unit(self, dir_x, dir_y):
         global game_win
 
-        new_coords = (player.x + dir_x) % grid.N, (player.y + dir_y) % grid.N
+        old_coords = self.x, self.y
+        new_coords = (self.x + dir_x) % grid.N, (self.y + dir_y) % grid.N
         self.x, self.y = new_coords
         self.energy -= 1
+
+        if old_coords not in grid.cell_to_coords_list(grid.visited_cells):
+            grid.visited_cells.append(Visited(*old_coords))
 
         if new_coords == grid.goal:
             game_win = True
@@ -151,6 +161,7 @@ class Grid:
 
         self.myObstacles[:] = map(change_coordinates, self.myObstacles)
         self.myRewards[:] = map(change_coordinates, self.myRewards)
+        self.visited_cells[:] = map(change_coordinates, self.visited_cells)
 
         if False in self.myRewards + self.myObstacles:
             print(Color.RED + 'Grid cannot be rotated!' + Color.RESET)
@@ -163,7 +174,7 @@ class Grid:
         return self.rotateClockwise(-rotation_factor)
 
     def update_grid(self):
-        all_occupied_cells = self.myObstacles + self.myRewards + [player, grid_goal]
+        all_occupied_cells = [player, grid_goal] + self.myObstacles + self.myRewards + self.visited_cells
 
         for i in range(self.N):
             for j in range(self.N):
@@ -191,6 +202,10 @@ class Grid:
             4: {
                 'graphic': '#',
                 'color': Color.RED
+            },
+            5: {
+                'graphic': 'X',
+                'color': Color.WHITE
             }
         }
 
@@ -215,6 +230,7 @@ class Grid:
         self.grid = [[0] * N for _ in range(N)]
         self.myObstacles = []
         self.myRewards = []
+        self.visited_cells = []
 
         boundary_coords = self.get_boundry_cell_coordinates()
         self.start, self.goal = random.sample(boundary_coords, 2)
