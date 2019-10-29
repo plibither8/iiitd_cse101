@@ -161,7 +161,6 @@ class Grid:
 
         self.myObstacles[:] = map(change_coordinates, self.myObstacles)
         self.myRewards[:] = map(change_coordinates, self.myRewards)
-        self.visited_cells[:] = map(change_coordinates, self.visited_cells)
 
         if False in self.myRewards + self.myObstacles:
             print(Color.RED + 'Grid cannot be rotated!' + Color.RESET)
