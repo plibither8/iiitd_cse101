@@ -150,7 +150,10 @@ class Player:
             """
             # Finds _next_ index in cell_list of which the cell has identical coords as the new player coords
             # Otherwise, it returns -1
-            cell_index = next((i for i, coords in enumerate(grid.cell_to_coords_list(cell_list)) if coords == new_coords), -1)
+            cell_index = next(
+                (i for i, coords in enumerate(grid.cell_to_coords_list(cell_list)) if coords == new_coords),
+                -1
+            )
 
             # Collision detected:
             # ===================
