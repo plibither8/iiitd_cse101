@@ -343,7 +343,17 @@ class Grid:
             if cell.type is 4 and proposed_coords in self.cell_to_coords_list([player, grid_goal]):
                 return False
 
-            # 3. If the above condition is false, return the cell itself with updated coords
+            # 3. Check whether the cell is a reward
+            # 4. If yes, check if it coincides with player and so increase player value and return None
+            # 5. If no, check if it coincides with goal and so return False - invalid move
+            if cell.type is 3:
+                if proposed_coords == (player.x, player.y):
+                    player.energy += cell.value * self.N
+                    return None
+                if proposed_coords == self.goal:
+                    return False
+
+            # 6. If the above condition is false, return the cell itself with updated coords
             cell.x, cell.y = proposed_coords
             return cell
 
@@ -357,10 +367,17 @@ class Grid:
             print(Color.RED + 'Grid cannot be rotated!' + Color.RESET)
             return False
 
+        # Loop through rewards and check if any of them are None
+        # If they are, it means the reward has been used up and delete it
+        # Break early to prevent IndexError
+        for i in range(len(self.myRewards)):
+            if self.myRewards[i] is None:
+                del self.myRewards[i]
+                break
+
         # Otherwise, decrease the player energy since this was a valid move and return True
-        else:
-            player.energy -= self.N // 3
-            return True
+        player.energy -= self.N // 3
+        return True
 
     def rotateAntiClockwise(self, rotation_factor):
         """Rotate anticlocwise using the rotateClockwise function by passing
